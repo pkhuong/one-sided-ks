@@ -67,7 +67,7 @@ bool uniform_eq_test(
 
 		const double delta = max_cdf_delta(x, y);
 		const double threshold
-		    = one_sided_ks_threshold(i + 1, min_count, log_eps);
+		    = one_sided_ks_threshold_fast(i + 1, min_count, log_eps);
 		if (delta > threshold) {
 			return true;
 		}
@@ -128,7 +128,7 @@ std::pair<bool, size_t> uniform_neq_test(
 
 		const double delta = max_cdf_delta(x, y);
 		const double threshold
-		    = one_sided_ks_threshold(i + 1, min_count, log_eps);
+		    = one_sided_ks_threshold_fast(i + 1, min_count, log_eps);
 		if (delta > threshold) {
 			return { true, i + 1 };
 		}

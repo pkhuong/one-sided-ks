@@ -177,12 +177,17 @@ double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps)
 {
 	assert(log_eps < 0);
 
-	if (log_eps >= 0) {
-		return -HUGE_VAL;
+	if (!one_sided_ks_min_count_valid(min_count, log_eps)) {
+		min_count = one_sided_ks_find_min_count(log_eps);
 	}
 
-	if (!one_sided_ks_min_count_valid) {
-		min_count = one_sided_ks_find_min_count(log_eps);
+	return one_sided_ks_threshold_fast(n, min_count, log_eps);
+}
+
+double one_sided_ks_threshold_fast(size_t n, size_t min_count, double log_eps)
+{
+	if (log_eps >= 0) {
+		return -HUGE_VAL;
 	}
 
 	if (n < min_count) {

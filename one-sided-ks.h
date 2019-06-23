@@ -54,6 +54,12 @@ int one_sided_ks_check_constants(void);
 double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps);
 
 /*
+ * Same as `one_sided_ks_threshold`, without any safety check.
+ */
+double one_sided_ks_threshold_fast(
+    size_t n, size_t min_count, double log_eps);
+
+/*
  * Determines whether `min_count` is high enough to achieve a log
  * error rate of at most `log_eps`.
  */
