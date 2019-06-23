@@ -7,6 +7,13 @@
 #include <stdint.h>
 #include <string.h>
 
+/*
+ * This first section handles safe rounding. It's unlikely to make any
+ * practical difference, but I tend to like extreme p values (e.g.,
+ * 10^-15), so it can't hurt to try and make sure floating point
+ * rounding doesn't make a liar out of me.
+ */
+
 /* Pairwise <= test is the base case. */
 const double one_sided_ks_pair_le = 0;
 
