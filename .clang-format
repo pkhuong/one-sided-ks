@@ -3,3 +3,4 @@ IndentWidth: 8
 PointerAlignment: Right
 UseTab: ForContinuationAndIndentation
 SortIncludes: true
+ColumnLimit: 78
