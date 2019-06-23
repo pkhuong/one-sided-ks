@@ -1,5 +1,5 @@
-Sequential Kolmogorov-Smirnov test with power 1
-===============================================
+Sequential Kolmogorov-Smirnov tests with power 1
+================================================
 
 This is an implementation of Darling and Robbins's Kolmogorov-Smirnov
 test described in [nonparametric sequential tests with power one](https://www.pnas.org/content/pnas/61/3/804.full.pdf).
