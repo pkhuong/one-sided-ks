@@ -4,6 +4,7 @@
 #include <float.h>
 #include <limits.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -170,28 +171,29 @@ static double threshold_down(double x, double log_b_down)
  *
  * log(b) = -log(eps) - log(min_count - 1).
  */
-static double log_b_up(size_t min_count, double log_eps)
+static double log_b_up(uint64_t min_count, double log_eps)
 {
-	return next(-log_down(min_count - 1) - log_eps);
+	return next(-log_down(min_count - 1.0) - log_eps);
 }
 
-static double log_b_down(size_t min_count, double log_eps)
+static double log_b_down(uint64_t min_count, double log_eps)
 {
-	return prev(-log_up(min_count - 1) - log_eps);
+	return prev(-log_up(min_count - 1.0) - log_eps);
 }
 
-double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps)
+double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps)
 {
 	assert(log_eps < 0);
 
-	if (!one_sided_ks_min_count_valid(min_count, log_eps)) {
+	if (one_sided_ks_min_count_valid(min_count, log_eps) == 0) {
 		min_count = one_sided_ks_find_min_count(log_eps);
 	}
 
 	return one_sided_ks_threshold_fast(n, min_count, log_eps);
 }
 
-double one_sided_ks_threshold_fast(size_t n, size_t min_count, double log_eps)
+double one_sided_ks_threshold_fast(
+    uint64_t n, uint64_t min_count, double log_eps)
 {
 	if (log_eps >= 0) {
 		return -HUGE_VAL;
@@ -209,21 +211,21 @@ double one_sided_ks_threshold_fast(size_t n, size_t min_count, double log_eps)
  *
  * In log space, that's log(eps) + min_count - 1 >= log (min_count + 1)
  */
-bool one_sided_ks_min_count_valid(size_t min_count, double log_eps)
+int one_sided_ks_min_count_valid(uint64_t min_count, double log_eps)
 {
 	assert(log_eps < 0);
 	if (log_eps >= 0) {
-		return true;
+		return 1;
 	}
 
 	if (min_count <= 2) {
-		return false;
+		return 0;
 	}
 
 	return prev(log_eps + (min_count - 1)) >= log_up(min_count + 1.0);
 }
 
-size_t one_sided_ks_find_min_count(double log_eps)
+uint64_t one_sided_ks_find_min_count(double log_eps)
 {
 	assert(log_eps < 0);
 	if (log_eps >= 0) {
@@ -236,7 +238,7 @@ size_t one_sided_ks_find_min_count(double log_eps)
 	 */
 	size_t i;
 	for (i = 1; i < 64; ++i) {
-		if (one_sided_ks_min_count_valid(1ULL << i, log_eps)) {
+		if (one_sided_ks_min_count_valid(1ULL << i, log_eps) != 0) {
 			break;
 		}
 	}
@@ -256,11 +258,11 @@ size_t one_sided_ks_find_min_count(double log_eps)
 	 *
 	 * Invariant: low is invalid, and high is valid.
 	 */
-	size_t low = 1ULL << (i - 1);
-	size_t high = 1ULL << i;
+	uint64_t low = 1ULL << (i - 1);
+	uint64_t high = 1ULL << i;
 	while (low + 1 < high) {
-		const size_t pivot = low + (high - low) / 2;
-		if (one_sided_ks_min_count_valid(pivot, log_eps)) {
+		const uint64_t pivot = low + (high - low) / 2;
+		if (one_sided_ks_min_count_valid(pivot, log_eps) != 0) {
 			high = pivot;
 		} else {
 			low = pivot;
@@ -277,7 +279,7 @@ size_t one_sided_ks_find_min_count(double log_eps)
  *
  * If rounding down, find the max x s.t. threshold(x, log_b) >= target
  */
-static double invert_threshold(size_t min_count, double target, bool up,
+static double invert_threshold(uint64_t min_count, double target, bool up,
     double threshold(double x, double log_b), double log_b)
 {
 	if (threshold(min_count, log_b) <= target) {
@@ -318,7 +320,7 @@ static double invert_threshold(size_t min_count, double target, bool up,
  * Over approximate g(target) = inv[f(x)/x].
  */
 static double invert_threshold_up(
-    double target, size_t min_count, double log_eps)
+    double target, uint64_t min_count, double log_eps)
 {
 	return invert_threshold(min_count, target, true, threshold_up,
 	    log_b_up(min_count, log_eps));
@@ -328,7 +330,7 @@ static double invert_threshold_up(
  * Under approximate g(target).
  */
 static double invert_threshold_down(
-    double target, size_t min_count, double log_eps)
+    double target, uint64_t min_count, double log_eps)
 {
 	return invert_threshold(min_count, target, false, threshold_down,
 	    log_b_down(min_count, log_eps));
@@ -338,13 +340,13 @@ static double invert_threshold_down(
  * E[N] <= g(d - m / g(d)) <= g_up(d - m / g_down(d))
  */
 double one_sided_ks_expected_iter(
-    size_t min_count, double log_eps, double delta)
+    uint64_t min_count, double log_eps, double delta)
 {
 	if (min_count == 0 || delta <= 0) {
 		return DBL_MAX;
 	}
 
-	if (!one_sided_ks_min_count_valid(min_count, log_eps)) {
+	if (one_sided_ks_min_count_valid(min_count, log_eps) == 0) {
 		return -1;
 	}
 

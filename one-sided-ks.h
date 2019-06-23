@@ -1,7 +1,6 @@
 #ifndef ONE_SIDED_KS_H
 #define ONE_SIDED_KS_H
-#include <stdbool.h>
-#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,22 +50,24 @@ int one_sided_ks_check_constants(void);
  *
  * log_eps must be negative.
  */
-double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps);
+double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps);
 
 /*
  * Same as `one_sided_ks_threshold`, without any safety check.
  */
 double one_sided_ks_threshold_fast(
-    size_t n, size_t min_count, double log_eps);
+    uint64_t n, uint64_t min_count, double log_eps);
 
 /*
  * Determines whether `min_count` is high enough to achieve a log
  * error rate of at most `log_eps`.
+ *
+ * Returns non-zero if valid, 0 if invalid.
  */
-bool one_sided_ks_min_count_valid(size_t min_count, double log_eps);
+int one_sided_ks_min_count_valid(uint64_t min_count, double log_eps);
 
 /* Computes the min `min_count` for `log_eps`, which must be negative. */
-size_t one_sided_ks_find_min_count(double log_eps);
+uint64_t one_sided_ks_find_min_count(double log_eps);
 
 /*
  * Upper-bounds the expected number of iterations to reject the
@@ -78,7 +79,7 @@ size_t one_sided_ks_find_min_count(double log_eps);
  * min_count must be valid for log_eps, and log_eps must be negative.
  */
 double one_sided_ks_expected_iter(
-    size_t min_count, double log_eps, double delta);
+    uint64_t min_count, double log_eps, double delta);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
