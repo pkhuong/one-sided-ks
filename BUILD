@@ -18,6 +18,7 @@ cc_test(
 cc_test(
     name = "one-sided-ks-stat_test",
     srcs = ["one-sided-ks-stat_test.cc"],
+    size = "enormous",  # we need a lot of data points
     deps = [
         ":one-sided-ks",
         "@com_google_googletest//:gtest_main",
