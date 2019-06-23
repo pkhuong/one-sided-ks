@@ -14,3 +14,13 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "one-sided-ks-stat_test",
+    srcs = ["one-sided-ks-stat_test.cc"],
+    deps = [
+        ":one-sided-ks",
+        "@com_google_googletest//:gtest_main",
+        "@csm//:csm",
+    ],
+)
