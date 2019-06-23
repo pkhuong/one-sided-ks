@@ -76,15 +76,21 @@ bool uniform_eq_test(
 	return false;
 }
 
-// Compare identical uniform distributions for 100K iterations.  We
+// Compare identical uniform distributions for 500K iterations.  We
 // should have a false positive rate less than the eps of 0.01.
 TEST(OneSidedKs, UniformPair)
 {
 	size_t total = 0;
 	size_t failures = 0;
+
+#ifndef NDEBUG
+	std::cout << "This test suite needs a few minutes in optimized mode. "
+		     "Debug mode may take for approximately ever."
+		  << std::endl;
+#endif
 	for (size_t i = 0; i < 10000; ++i) {
 		++total;
-		if (uniform_eq_test(10, 100000, 100,
+		if (uniform_eq_test(10, 500000, 100,
 			std::log(0.01) + one_sided_ks_pair_eq)) {
 			++failures;
 		}
@@ -105,7 +111,7 @@ TEST(OneSidedKs, UniformPair)
 
 constexpr double kDiscrepancyRate = 0.025;
 
-// Like the EQ test, but differ in 10% of cases.
+// Like the EQ test, but differ in kDiscrepancyRate of cases.
 std::pair<bool, size_t> uniform_neq_test(
     size_t range, size_t repeat, size_t min_count, double log_eps)
 {
@@ -137,15 +143,15 @@ std::pair<bool, size_t> uniform_neq_test(
 	return { false, SIZE_MAX };
 }
 
-// Compare slightly uniform distributions for 100K iterations.  We
-// should have a false positive rate less than the eps of 0.01.
+// Compare a slightly non-uniform and an uniform distribution for 100K
+// iterations.  We should have a ridiculous false negative rate.
 TEST(OneSidedKs, NonUniformPair)
 {
 	size_t total = 0;
 	size_t successes = 0;
 	double total_iter = 0;
 
-	for (size_t i = 0; i < 10000; ++i) {
+	for (size_t i = 0; i < 20000; ++i) {
 		++total;
 
 		bool different;
@@ -157,7 +163,7 @@ TEST(OneSidedKs, NonUniformPair)
 			++successes;
 		}
 
-		if (csm(nullptr, total, 0.99, successes, std::log(1e-4))) {
+		if (csm(nullptr, total, 0.999, successes, std::log(1e-4))) {
 			std::cout
 			    << "Actual rate " << 1.0 * successes / total
 			    << " " << successes << " / " << total << " - "
@@ -169,10 +175,13 @@ TEST(OneSidedKs, NonUniformPair)
 		}
 	}
 
-	EXPECT_TRUE(false) << "Too many iterations " << total << "("
-			   << successes << ")";
+	EXPECT_EQ(total, successes)
+	    << "Should not have any failure after " << total << " tests ("
+	    << total_iter / std::max<size_t>(1, successes) << " iter/test)";
 }
 
+// Compare the same distributions. We should usually do better than
+// the expected iteration count.
 TEST(OneSidedKs, NonUniformPairExpectedIter)
 {
 	const double expected_iter = one_sided_ks_expected_iter(
@@ -191,13 +200,13 @@ TEST(OneSidedKs, NonUniformPairExpectedIter)
 		size_t num_iter;
 		std::tie(different, num_iter) = uniform_neq_test(
 		    10, 100000, 100, std::log(0.01) + one_sided_ks_pair_eq);
+		total_iter += num_iter;
 		if (different && num_iter < expected_iter) {
-			total_iter += num_iter;
 			++successes;
 		}
 
 		if (csm(nullptr, total, 0.5, successes, std::log(1e-4))) {
-			std::cout << "Average iter " << total_iter / successes
+			std::cout << "Average iter " << total_iter / total
 				  << " expected " << expected_iter
 				  << " hit ratio: " << 1.0 * successes / total
 				  << "\n";
