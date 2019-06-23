@@ -9,7 +9,7 @@ http_archive(
 
 http_archive(
     name = "csm",
-    sha256 = "0a8d1f25710725d5bfed01edf851de9627b444e91eefc0fd6f27081f674fa406",
-    strip_prefix = "csm-125cac4e4236287509cd6cc15f64de416e664e9b",
-    urls = ["https://github.com/pkhuong/csm/archive/125cac4e4236287509cd6cc15f64de416e664e9b.zip"],  # 2019-06-23
+    sha256 = "5905bd05c14f2ce54216faa8a42c08a341ddf69cf64de940c37b63377c0f8034",
+    strip_prefix = "csm-8d98f0e3a8a36b1fed172bc9c48d0480237ec751",
+    urls = ["https://github.com/pkhuong/csm/archive/8d98f0e3a8a36b1fed172bc9c48d0480237ec751.zip"],  # 2019-06-23
 )

@@ -95,7 +95,8 @@ TEST(OneSidedKs, UniformPair)
 			++failures;
 		}
 
-		if (csm(nullptr, total, 0.01, failures, std::log(1e-4))) {
+		if (csm(total, 0.01, failures, std::log(1e-4), nullptr)
+		    != 0) {
 			std::cout << "Actual rate " << 1.0 * failures / total
 				  << ": " << failures << " / " << total
 				  << "\n";
@@ -163,7 +164,8 @@ TEST(OneSidedKs, NonUniformPair)
 			++successes;
 		}
 
-		if (csm(nullptr, total, 0.999, successes, std::log(1e-4))) {
+		if (csm(total, 0.999, successes, std::log(1e-4), nullptr)
+		    != 0) {
 			std::cout
 			    << "Actual rate " << 1.0 * successes / total
 			    << " " << successes << " / " << total << " - "
@@ -205,7 +207,8 @@ TEST(OneSidedKs, NonUniformPairExpectedIter)
 			++successes;
 		}
 
-		if (csm(nullptr, total, 0.5, successes, std::log(1e-4))) {
+		if (csm(total, 0.5, successes, std::log(1e-4), nullptr)
+		    != 0) {
 			std::cout << "Average iter " << total_iter / total
 				  << " expected " << expected_iter
 				  << " hit ratio: " << 1.0 * successes / total
