@@ -9,9 +9,7 @@
 #include "gtest/gtest.h"
 
 namespace {
-using ::testing::AllOf;
 using ::testing::DoubleNear;
-using ::testing::Le;
 using ::testing::Lt;
 
 TEST(OneSidedKs, ConstantsOk)
@@ -25,7 +23,8 @@ TEST(OneSidedKs, ThresholdMonotonicGolden)
 	for (size_t i = 6; i < 100; ++i) {
 		// The threshold should be f(x) / x,
 		// f(x) = sqrt((x + 1)(2 log x + log 4))
-		const double fx = std::sqrt((i + 1) * (2 * std::log(i) + std::log(4)));
+		const double fx
+		    = std::sqrt((i + 1) * (2 * std::log(i) + std::log(4)));
 
 		EXPECT_THAT(one_sided_ks_threshold(i, 6, std::log(0.05)),
 		    DoubleNear(fx / i, 1e-15));
@@ -60,7 +59,8 @@ TEST(OneSidedKs, MinCountGolden)
 
 	// Going higher should still be fine.
 	EXPECT_TRUE(one_sided_ks_min_count_valid(7, std::log(0.05)));
-	EXPECT_TRUE(one_sided_ks_min_count_valid(SIZE_MAX - 1, std::log(0.05)));
+	EXPECT_TRUE(
+	    one_sided_ks_min_count_valid(SIZE_MAX - 1, std::log(0.05)));
 
 	// Lower should not be good
 	EXPECT_FALSE(one_sided_ks_min_count_valid(5, std::log(0.05)));
@@ -89,7 +89,8 @@ TEST(OneSidedKs, ExpectedIterEdgeCase)
 {
 	// Numerical trickery makes this computation extra conservative, but
 	// at least it makes sense.
-	EXPECT_THAT(one_sided_ks_expected_iter(6, std::log(0.05), 1.0), DoubleNear(100.0, 0.1));
+	EXPECT_THAT(one_sided_ks_expected_iter(6, std::log(0.05), 1.0),
+	    DoubleNear(100.0, 0.1));
 	EXPECT_THAT(one_sided_ks_expected_iter(1000, -1, 0.0),
 	    DoubleNear(DBL_MAX, 1.0));
 	EXPECT_THAT(one_sided_ks_expected_iter(1000, -1, DBL_MIN),

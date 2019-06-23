@@ -12,10 +12,14 @@ extern "C" {
 /* For pairwise <= test. */
 extern const double one_sided_ks_pair_le;
 
-/*  */
+/* For pairwise equality test. */
 extern const double one_sided_ks_pair_eq;
+
+/* <= and equality test with a specific distribution. */
 extern const double one_sided_ks_fixed_le;
 extern const double one_sided_ks_fixed_eq;
+
+/* Equality test with a family of distributions. */
 extern const double one_sided_ks_class;
 
 /*
@@ -63,7 +67,8 @@ size_t one_sided_ks_find_min_count(double log_eps);
  *
  * Extremely conservative when delta is large.
  */
-double one_sided_ks_expected_iter(size_t min_count, double log_eps, double delta);
+double one_sided_ks_expected_iter(
+    size_t min_count, double log_eps, double delta);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
