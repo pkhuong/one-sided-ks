@@ -31,6 +31,13 @@ TEST(OneSidedKs, ThresholdMonotonicGolden)
 	}
 }
 
+// As we add more data, the threshold should be more stringent.
+TEST(OneSidedKs, ThresholdMonotonicN)
+{
+	EXPECT_THAT(one_sided_ks_threshold(1000, 10, -1),
+	    Lt(one_sided_ks_threshold(100, 10, -1)));
+}
+
 // If we increase min count, the threshold should decrease
 TEST(OneSidedKs, ThresholdMonotonicMinCount)
 {
