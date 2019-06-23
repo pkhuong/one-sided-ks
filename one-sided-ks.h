@@ -7,9 +7,9 @@
 extern "C" {
 #endif
 
-/* Add these constants to `log_eps` for specific comparison types.*/
+/* Add these constants to `log_eps` dependong on the type of comparison.*/
 
-/* For pairwise <= test. */
+/* For pairwise <= test (same as not adding anything). */
 extern const double one_sided_ks_pair_le;
 
 /* For pairwise equality test. */
@@ -48,6 +48,8 @@ int one_sided_ks_check_constants(void);
  * The threshold is such that, if we apply this process to an infinite
  * stream of data, the probability of false positive is at most
  * `exp(log_eps)`.
+ *
+ * log_eps must be negative.
  */
 double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps);
 
@@ -57,7 +59,7 @@ double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps);
  */
 bool one_sided_ks_min_count_valid(size_t min_count, double log_eps);
 
-/* Computes the min `min_count` for `log_eps`. */
+/* Computes the min `min_count` for `log_eps`, which must be negative. */
 size_t one_sided_ks_find_min_count(double log_eps);
 
 /*
@@ -66,6 +68,8 @@ size_t one_sided_ks_find_min_count(double log_eps);
  * `delta`.
  *
  * Extremely conservative when delta is large.
+ *
+ * min_count must be valid for log_eps, and log_eps must be negative.
  */
 double one_sided_ks_expected_iter(
     size_t min_count, double log_eps, double delta);

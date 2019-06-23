@@ -176,13 +176,17 @@ static double log_b_down(size_t min_count, double log_eps)
 double one_sided_ks_threshold(size_t n, size_t min_count, double log_eps)
 {
 	assert(log_eps < 0);
-	assert(one_sided_ks_min_count_valid(min_count, log_eps));
-	if (n < min_count || n == 0) {
-		return HUGE_VAL;
-	}
 
 	if (log_eps >= 0) {
-		log_eps = prev(-0.0);
+		return -HUGE_VAL;
+	}
+
+	if (!one_sided_ks_min_count_valid) {
+		min_count = one_sided_ks_find_min_count(log_eps);
+	}
+
+	if (n < min_count) {
+		return HUGE_VAL;
 	}
 
 	return threshold_up(n, log_b_up(min_count, log_eps));
@@ -197,10 +201,10 @@ bool one_sided_ks_min_count_valid(size_t min_count, double log_eps)
 {
 	assert(log_eps < 0);
 	if (log_eps >= 0) {
-		log_eps = prev(-0.0);
+		return true;
 	}
 
-	if (min_count <= 1) {
+	if (min_count <= 2) {
 		return false;
 	}
 
@@ -211,7 +215,7 @@ size_t one_sided_ks_find_min_count(double log_eps)
 {
 	assert(log_eps < 0);
 	if (log_eps >= 0) {
-		log_eps = prev(-0.0);
+		return 0;
 	}
 
 	/*
