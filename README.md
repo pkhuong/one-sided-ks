@@ -133,7 +133,20 @@ maximum distance between two underlying CDFs,
 `one_sided_ks_expected_iter` will return an upper bound on the
 expected number of iterations needed to correctly reject the null
 hypothesis.  That upper bound tends to be fairly conservative, but is
-nevertheless valid.  We can also convert it into even more
-conservative bounds on the median (or other quantile) number of
-iterations since we know that the distribution of iteration counts is
-long-tailed and never goes below `min_count`.
+nevertheless valid.
+
+We can also convert it into even more conservative bounds on the
+median (or other quantile) number of iterations since we know that the
+distribution of iteration counts is long-tailed and never goes below
+`min_count`.  Simply knowing that the iteration count is a
+non-negative value lets us apply
+[Markov's inequality](https://en.wikipedia.org/wiki/Markov%27s_inequality):
+the 90th percentile can't exceed 10x the expected iteration count.
+We can do even better if we also take into account the fact that the
+iteration count until we reject the null is always at least
+`min_count`, and consider `iteration_count - min_count` as our
+nonnegative random variable. The 90th percentile thus can't
+exceed `min_count + 10 * (expected_iter - min_count)`.  These bounds
+are extremely conservative, but might still be useful.  Numerical
+experiments can provide stronger bounds, e.g., with a
+[binomial test](https://github.com/pkhuong/csm).
