@@ -8,23 +8,34 @@ extern "C" {
 
 /* Add these constants to `log_eps` dependong on the type of comparison.*/
 
-/* For pairwise <= test (same as not adding anything). */
+/* For the one-sided two-sample (pairwise <=) test. */
 extern const double one_sided_ks_pair_le;
 
-/* For pairwise equality test. */
+/* For the two-sided two-sample (pairwise equality) test. */
 extern const double one_sided_ks_pair_eq;
 
-/* <= and equality test with a specific distribution. */
+/* For the one-sided one-sample (<= specific distribution) test. */
 extern const double one_sided_ks_fixed_le;
+
+/* For the two-sided one-sample (= specific distribution) test. */
 extern const double one_sided_ks_fixed_eq;
 
-/* Equality test with a family of distributions. */
+/*
+ * For the two-sided one-sample test against a family of distribution,
+ * where the distance statistic is the supremum for the distribution
+ * that minimises the statistic.
+ *
+ * See Darling and Robbins's Nonparametric sequential tests with
+ * power one (https://www.pnas.org/content/pnas/61/3/804.full.pdf)
+ * for technical conditions.
+ */
 extern const double one_sided_ks_class;
 
 /*
- * Returns 0 if the constants were correctly compiled, non-zero otherwise.
+ * Returns 0 if the constants were definitely compiled correctly,
+ * non-zero otherwise.
  *
- * If non-zero the return value is a bitmask with ones for each
+ * When non-zero, the return value is a bitmask with ones for each
  * constant with an incorrect value, in order:
  *
  * bit 0: pair_le
@@ -80,6 +91,7 @@ uint64_t one_sided_ks_find_min_count(double log_eps);
  */
 double one_sided_ks_expected_iter(
     uint64_t min_count, double log_eps, double delta);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
