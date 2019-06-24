@@ -6,7 +6,12 @@
 extern "C" {
 #endif
 
-/* Add these constants to `log_eps` dependong on the type of comparison.*/
+/*
+ * Add these constants to `log_eps` depending on the type of comparison.
+ *
+ * For example, to perform a two-sided two-sample test at p < 0.01,
+ * pass in `log_eps = ln(0.01) + one_sided_ks_pair_eq`.
+ */
 
 /* For the one-sided two-sample (pairwise <=) test. */
 extern const double one_sided_ks_pair_le;
