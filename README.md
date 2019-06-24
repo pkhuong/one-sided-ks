@@ -96,6 +96,24 @@ the difference between the empirical CDF and the distribution, and
 compare that difference with the value returned by
 `one_sided_ks_threshold`, with `log_eps = log(false_positive) + one_sided_ks_class`.
 
+Discontinuous distributions
+---------------------------
+
+The classic Kolmogorov-Smirnov (e.g., as described by Darling and
+Robbins) is defined on continuous distributions, without
+discontinuities (e.g., not jump in CDF between 0.99999... and 1).  In
+practice, discontinuous distributions are useful and show up a lot.
+
+Thankfully, treating the distance between two discrete (or mixed)
+distributions as though they were continuous does not compromise
+correctness.  It simply means that we're more likely to accept the
+null hypothesis. See [this 2017 paper](http://openaccess.city.ac.uk/18541/)
+for more details, examples, and an idea of what the adjustment might
+look like.  Our tests all have power 1, so this really means that
+ignoring the discontinuity (and associated lower degrees of freedom)
+simply means that we'll require more data to reject the null
+hypothesis, when it does not actually hold.
+
 More notes on usage
 -------------------
 
