@@ -56,7 +56,6 @@ bool uniform_eq_test(
 	std::random_device dev;
 	std::mt19937 rng(dev());
 
-	// First, generate all the sets.
 	std::uniform_int_distribution<size_t> dist(0, range - 1);
 	std::vector<size_t> x(range, 0);
 	std::vector<size_t> y(range, 0);
