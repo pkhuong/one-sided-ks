@@ -64,7 +64,9 @@ int one_sided_ks_check_constants(void);
  * stream of data, the probability of false positive is at most
  * `exp(log_eps)`.
  *
- * log_eps must be negative.
+ * `min_count` should be valid for `log_eps`, and `log_eps` must be
+ * negative.  When `n < min_count`, this function immediately returns
+ * +infty.
  */
 double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps);
 
@@ -76,7 +78,7 @@ double one_sided_ks_threshold_fast(
 
 /*
  * Determines whether `min_count` is high enough to achieve a log
- * error rate of at most `log_eps`.
+ * error rate of at most `log_eps`, which must be negative.
  *
  * Returns non-zero if valid, 0 if invalid.
  */
@@ -92,7 +94,7 @@ uint64_t one_sided_ks_find_min_count(double log_eps);
  *
  * Extremely conservative when delta is large.
  *
- * min_count must be valid for log_eps, and log_eps must be negative.
+ * `min_count` must be valid for `log_eps`, and `log_eps` must be negative.
  */
 double one_sided_ks_expected_iter(
     uint64_t min_count, double log_eps, double delta);

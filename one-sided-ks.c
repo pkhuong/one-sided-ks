@@ -183,7 +183,8 @@ static double log_b_down(uint64_t min_count, double log_eps)
 
 double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps)
 {
-	assert(log_eps < 0);
+	assert(log_eps <= 0
+	    && "log_eps must be negative (for a false positive rate < 1).");
 
 	if (one_sided_ks_min_count_valid(min_count, log_eps) == 0) {
 		min_count = one_sided_ks_find_min_count(log_eps);
@@ -195,12 +196,12 @@ double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps)
 double one_sided_ks_threshold_fast(
     uint64_t n, uint64_t min_count, double log_eps)
 {
-	if (log_eps >= 0) {
-		return -HUGE_VAL;
-	}
-
 	if (n < min_count) {
 		return HUGE_VAL;
+	}
+
+	if (log_eps >= 0) {
+		return -HUGE_VAL;
 	}
 
 	return threshold_up(n, log_b_up(min_count, log_eps));
@@ -213,7 +214,8 @@ double one_sided_ks_threshold_fast(
  */
 int one_sided_ks_min_count_valid(uint64_t min_count, double log_eps)
 {
-	assert(log_eps < 0);
+	assert(log_eps <= 0
+	    && "log_eps must be negative (for a false positive rate < 1).");
 	if (log_eps >= 0) {
 		return 1;
 	}
@@ -227,7 +229,8 @@ int one_sided_ks_min_count_valid(uint64_t min_count, double log_eps)
 
 uint64_t one_sided_ks_find_min_count(double log_eps)
 {
-	assert(log_eps < 0);
+	assert(log_eps <= 0
+	    && "log_eps must be negative (for a false positive rate < 1).");
 	if (log_eps >= 0) {
 		return 0;
 	}
@@ -342,17 +345,18 @@ static double invert_threshold_down(
 double one_sided_ks_expected_iter(
     uint64_t min_count, double log_eps, double delta)
 {
+	assert(log_eps <= 0
+	    && "log_eps must be negative (for a false positive rate < 1).");
+	if (log_eps >= 0) {
+		return 0.0;
+	}
+
 	if (min_count == 0 || delta <= 0) {
 		return DBL_MAX;
 	}
 
 	if (one_sided_ks_min_count_valid(min_count, log_eps) == 0) {
 		return -1;
-	}
-
-	assert(log_eps < 0);
-	if (log_eps >= 0) {
-		log_eps = prev(-0.0);
 	}
 
 	/*
