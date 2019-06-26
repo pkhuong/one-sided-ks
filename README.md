@@ -150,3 +150,15 @@ exceed `min_count + 10 * (expected_iter - min_count)`.  These bounds
 are extremely conservative, but might still be useful.  Numerical
 experiments can provide stronger bounds, e.g., with a
 [binomial test](https://github.com/pkhuong/csm).
+
+See also
+--------
+
+One-sided-KS can only compare full distributions, but does so
+relatively efficiently.  The [confidence sequence
+method](https://github.com/pkhuong/csm) is even more restricted--it
+can only test 0/1 Binomial distributions--but tends to reject the null
+hypothesis with fewer data.
+[Martingale-CS](https://github.com/pkhuong/martingale-cs) can help
+compare more generic continuous point statistics like averages, or
+quantiles, but will need a lot more data points.
