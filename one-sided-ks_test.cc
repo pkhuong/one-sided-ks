@@ -26,37 +26,64 @@ TEST(OneSidedKs, ThresholdMonotonicGolden)
 		const double fx
 		    = std::sqrt((i + 1) * (2 * std::log(i) + std::log(4)));
 
-		EXPECT_THAT(one_sided_ks_threshold(i, 6, std::log(0.05)),
+		EXPECT_THAT(one_sided_ks_pair_threshold(i, 6, std::log(0.05)),
 		    DoubleNear(fx / i, 1e-15));
+	}
+}
+
+// Distribution thresholds are roughly 1/sqrt(2) times the two-sample value,
+// and we can multiply by i instead of (i + 1).
+TEST(OneSidedKs, DistributionThresholdMonotonicGolden)
+{
+	// The paper says eps = 0.05, m = 6 -> b = 4
+	for (size_t i = 6; i < 100; ++i) {
+		const double fx
+		    = std::sqrt(i * (2 * std::log(i) + std::log(4)));
+
+		EXPECT_THAT(
+		    one_sided_ks_distribution_threshold(i, 6, std::log(0.05)),
+		    DoubleNear(std::sqrt(0.5) * fx / i, 1e-15));
 	}
 }
 
 // As we add more data, the threshold should be more stringent.
 TEST(OneSidedKs, ThresholdMonotonicN)
 {
-	EXPECT_THAT(one_sided_ks_threshold(1000, 10, -1),
-	    Lt(one_sided_ks_threshold(100, 10, -1)));
+	EXPECT_THAT(one_sided_ks_pair_threshold(1000, 10, -1),
+	    Lt(one_sided_ks_pair_threshold(100, 10, -1)));
+
+	EXPECT_THAT(one_sided_ks_distribution_threshold(1000, 10, -1),
+	    Lt(one_sided_ks_distribution_threshold(100, 10, -1)));
 }
 
 // If we increase min count, the threshold should decrease
 TEST(OneSidedKs, ThresholdMonotonicMinCount)
 {
-	EXPECT_THAT(one_sided_ks_threshold(1000, 100, -1),
-	    Lt(one_sided_ks_threshold(1000, 10, -1)));
+	EXPECT_THAT(one_sided_ks_pair_threshold(1000, 100, -1),
+	    Lt(one_sided_ks_pair_threshold(1000, 10, -1)));
+
+	EXPECT_THAT(one_sided_ks_distribution_threshold(1000, 100, -1),
+	    Lt(one_sided_ks_distribution_threshold(1000, 10, -1)));
 }
 
 // If we allow more false positives, the threshold should decrease.
 TEST(OneSidedKs, ThresholdMonotonicEps)
 {
-	EXPECT_THAT(one_sided_ks_threshold(10000, 1000, -3),
-	    Lt(one_sided_ks_threshold(10000, 1000, -4)));
+	EXPECT_THAT(one_sided_ks_pair_threshold(10000, 1000, -3),
+	    Lt(one_sided_ks_pair_threshold(10000, 1000, -4)));
+
+	EXPECT_THAT(one_sided_ks_distribution_threshold(10000, 1000, -3),
+	    Lt(one_sided_ks_distribution_threshold(10000, 1000, -4)));
 }
 
 // As we get more data points the threshold should also decrease.
 TEST(OneSidedKs, ThresholdMonotonicCount)
 {
-	EXPECT_THAT(one_sided_ks_threshold(100000, 1000, -4),
-	    Lt(one_sided_ks_threshold(10000, 1000, -4)));
+	EXPECT_THAT(one_sided_ks_pair_threshold(100000, 1000, -4),
+	    Lt(one_sided_ks_pair_threshold(10000, 1000, -4)));
+
+	EXPECT_THAT(one_sided_ks_distribution_threshold(100000, 1000, -4),
+	    Lt(one_sided_ks_distribution_threshold(10000, 1000, -4)));
 }
 
 TEST(OneSidedKs, MinCountGolden)

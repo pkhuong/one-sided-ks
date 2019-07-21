@@ -15,20 +15,20 @@
  * rounding doesn't make a liar out of me.
  */
 
-/* Pairwise <= test is the base case. */
-const double one_sided_ks_pair_le = 0;
+/* Pairwise <= test is the default case. */
+const double one_sided_ks_le = 0;
 
 /* -log 2 rounded away from 0. */
-const double one_sided_ks_pair_eq = -0.6931471805599454;
+const double one_sided_ks_eq = -0.6931471805599454;
 
-/* -log(2 sqrt(2)) rounded away from 0. */
-const double one_sided_ks_fixed_le = -1.039720770839918;
+/* -log 2 rounded away from 0. */
+const double one_sided_ks_class = -0.6931471805599454;
 
-/* -log(4 sqrt(2)) rounded away from 0. */
-const double one_sided_ks_fixed_eq = -1.7328679513998635;
+/* sqrt(1/2) rounded up. */
+static const double sqrt_half_up = 0.7071067811865476;
 
-/* -log(4 sqrt(2)) rounded away from 0. */
-const double one_sided_ks_class = -1.7328679513998635;
+/* log 1/2 rounded down = -log 2. */
+static const double log_half_down = -0.6931471805599454;
 
 static inline uint64_t float_bits(double x)
 {
@@ -124,19 +124,20 @@ int one_sided_ks_check_constants(void)
 		++index;                                                     \
 	} while (0)
 
-	/* pair_le is the default: no adjustment. */
-	CHECK(one_sided_ks_pair_le, 0);
-	CHECK(one_sided_ks_pair_eq, -4618953502541334032ULL);
-	CHECK(one_sided_ks_fixed_le, -4616010731606004876ULL);
-	CHECK(one_sided_ks_fixed_eq, -4612889074221922196ULL);
-	CHECK(one_sided_ks_class, -4612889074221922196ULL);
+	/* le is the default: no adjustment. */
+	CHECK(one_sided_ks_le, 0);
+	CHECK(one_sided_ks_eq, -4618953502541334032ULL);
+	CHECK(one_sided_ks_class, -4618953502541334032ULL);
+	CHECK(sqrt_half_up, 4604544271217802189ULL);
+	CHECK(log_half_down, -4618953502541334032ULL);
 #undef CHECK
 
 	return ret;
 }
 
 /*
- * f(x) / x, where f(x) = ((x + 1)(2 log x + log b))^1/2, rounded up.
+ * f(x) / x, where f(x) = ((x + 1)(2 log x + log b))^1/2, rounded up for
+ * the two-sample case, and .
  */
 static double threshold_up(double x, double log_b_up)
 {
@@ -150,6 +151,24 @@ static double threshold_up(double x, double log_b_up)
 	const double f_x2 = next(xp1 * next(2 * log_up(x) + log_b_up));
 
 	return next(sqrt_up(f_x2) / x);
+}
+
+/*
+ * f(x) / x, where f(x) = (x (2 log x + log b))^1/2 for one-sample.
+ *
+ * We work with P[D+(n) >= r / n] <= exp[-2 r^2 / n], so it suffices
+ * for f^2(x) / n = 2 log x + log b.
+ */
+static double distribution_threshold_up(double x, double log_b_up)
+{
+	/*
+	 * compute f(x)^2 = x (2 log x + log b).
+	 *
+	 * x = 1 is exact, and so is the multiplication by 2.
+	 */
+	const double f_x2 = next(x * next(2 * log_up(x) + log_b_up));
+
+	return next(sqrt_half_up * next(sqrt_up(f_x2) / x));
 }
 
 static double threshold_down(double x, double log_b_down)
@@ -181,7 +200,8 @@ static double log_b_down(uint64_t min_count, double log_eps)
 	return prev(-log_up(min_count - 1.0) - log_eps);
 }
 
-double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps)
+double one_sided_ks_pair_threshold(
+    uint64_t n, uint64_t min_count, double log_eps)
 {
 	assert(log_eps <= 0
 	    && "log_eps must be negative (for a false positive rate < 1).");
@@ -190,10 +210,10 @@ double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps)
 		min_count = one_sided_ks_find_min_count(log_eps);
 	}
 
-	return one_sided_ks_threshold_fast(n, min_count, log_eps);
+	return one_sided_ks_pair_threshold_fast(n, min_count, log_eps);
 }
 
-double one_sided_ks_threshold_fast(
+double one_sided_ks_pair_threshold_fast(
     uint64_t n, uint64_t min_count, double log_eps)
 {
 	if (n < min_count) {
@@ -204,7 +224,39 @@ double one_sided_ks_threshold_fast(
 		return -HUGE_VAL;
 	}
 
+	if (log_eps > log_half_down) {
+		log_eps = log_half_down;
+	}
+
 	return threshold_up(n, log_b_up(min_count, log_eps));
+}
+
+double one_sided_ks_distribution_threshold(
+    uint64_t n, uint64_t min_count, double log_eps)
+{
+	assert(log_eps <= 0
+	    && "log_eps must be negative (for a false positive rate < 1).");
+
+	if (one_sided_ks_min_count_valid(min_count, log_eps) == 0) {
+		min_count = one_sided_ks_find_min_count(log_eps);
+	}
+
+	return one_sided_ks_distribution_threshold_fast(
+	    n, min_count, log_eps);
+}
+
+double one_sided_ks_distribution_threshold_fast(
+    uint64_t n, uint64_t min_count, double log_eps)
+{
+	if (n < min_count) {
+		return HUGE_VAL;
+	}
+
+	if (log_eps >= 0) {
+		return -HUGE_VAL;
+	}
+
+	return distribution_threshold_up(n, log_b_up(min_count, log_eps));
 }
 
 /*
@@ -365,7 +417,7 @@ double one_sided_ks_expected_iter(
 	 * clamping `delta` to much less than our first threshold.
 	 */
 	const double first_threshold
-	    = one_sided_ks_threshold(min_count, min_count, log_eps);
+	    = one_sided_ks_pair_threshold(min_count, min_count, log_eps);
 	if (delta > first_threshold / 2) {
 		delta = prev(first_threshold / 2);
 	}

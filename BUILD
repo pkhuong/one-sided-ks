@@ -19,7 +19,7 @@ cc_test(
     name = "one-sided-ks-stat_test",
     srcs = ["one-sided-ks-stat_test.cc"],
     size = "enormous",  # we need a lot of data points
-    shard_count = 3,
+    shard_count = 5,
     deps = [
         ":one-sided-ks",
         "@com_google_googletest//:gtest_main",

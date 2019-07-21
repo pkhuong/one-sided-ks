@@ -5,25 +5,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /*
- * Add these constants to `log_eps` depending on the type of comparison.
+ * The functions declared in this header compute one-sided confidence
+ * sequences on the Kolmogorov-Smirnov statistic.  Add the following
+ * constants to `log_eps` to implement other comparisons.
  *
- * For example, to perform a two-sided two-sample test at p < 0.01,
- * pass in `log_eps = ln(0.01) + one_sided_ks_pair_eq`.
+ * For example, to perform a two-sided test at p < 0.01, pass in
+ * `log_eps = ln(0.01) + one_sided_ks_eq`.
  */
 
-/* For the one-sided two-sample (pairwise <=) test. */
-extern const double one_sided_ks_pair_le;
+/* For the one-sided (<=) test, the default case. */
+extern const double one_sided_ks_le;
 
-/* For the two-sided two-sample (pairwise equality) test. */
-extern const double one_sided_ks_pair_eq;
-
-/* For the one-sided one-sample (<= specific distribution) test. */
-extern const double one_sided_ks_fixed_le;
-
-/* For the two-sided one-sample (= specific distribution) test. */
-extern const double one_sided_ks_fixed_eq;
+/* For the two-sided (equality) test. */
+extern const double one_sided_ks_eq;
 
 /*
  * For the two-sided one-sample test against a family of distribution,
@@ -33,6 +28,9 @@ extern const double one_sided_ks_fixed_eq;
  * See Darling and Robbins's Nonparametric sequential tests with
  * power one (https://www.pnas.org/content/pnas/61/3/804.full.pdf)
  * for technical conditions.
+ *
+ * Add this constant to `log_eps` and use
+ * `one_sided_ks_distribution_threshold`.
  */
 extern const double one_sided_ks_class;
 
@@ -43,12 +41,10 @@ extern const double one_sided_ks_class;
  * When non-zero, the return value is a bitmask with ones for each
  * constant with an incorrect value, in order:
  *
- * bit 0: pair_le
- * bit 1: pair_eq
- * bit 2: fixed_le
- * bit 3: fixed_eq
- * bit 4: class
- *
+ * bit 0: le
+ * bit 1: eq
+ * bit 2: class
+ * bit 3: internal constant (sqrt 1/2).
  */
 int one_sided_ks_check_constants(void);
 
@@ -68,12 +64,37 @@ int one_sided_ks_check_constants(void);
  * negative.  When `n < min_count`, this function immediately returns
  * +infty.
  */
-double one_sided_ks_threshold(uint64_t n, uint64_t min_count, double log_eps);
+double one_sided_ks_pair_threshold(
+    uint64_t n, uint64_t min_count, double log_eps);
 
 /*
- * Same as `one_sided_ks_threshold`, without any safety check.
+ * Same as `one_sided_ks_pair_threshold`, without any safety check.
  */
-double one_sided_ks_threshold_fast(
+double one_sided_ks_pair_threshold_fast(
+    uint64_t n, uint64_t min_count, double log_eps);
+
+/*
+ * Given a sample size of `n` datapoints, of which the first
+ * `min_count` were accumulated without performing any significance
+ * test, returns a `threshold` such that the supremum of the
+ * difference between the empirical and theoretical CDFs should only
+ * exceed `threshold` with low probability.
+ *
+ * The threshold is such that, if we apply this process to an infinite
+ * stream of data, the probability of exceeding the threshold even
+ * once is at most `exp(log_eps)`.
+ *
+ * `min_count` should be valid for `log_eps`, and `log_eps` must be
+ * negative.  When `n < min_count`, this function immediately returns
+ * +infty.
+ */
+double one_sided_ks_distribution_threshold(
+    uint64_t n, uint64_t min_count, double log_eps);
+
+/*
+ * Same as `one_sided_ks_distribution_threshold`, without any safety check.
+ */
+double one_sided_ks_distribution_threshold_fast(
     uint64_t n, uint64_t min_count, double log_eps);
 
 /*
@@ -92,7 +113,8 @@ uint64_t one_sided_ks_find_min_count(double log_eps);
  * hypothesis if the actual distance from then null hypothesis is
  * `delta`.
  *
- * Extremely conservative when delta is large.
+ * Extremely conservative when delta is large, and for comparisons
+ * against a distribution.
  *
  * `min_count` must be valid for `log_eps`, and `log_eps` must be negative.
  */

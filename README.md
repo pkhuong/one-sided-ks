@@ -162,3 +162,93 @@ hypothesis with fewer data.
 [Martingale-CS](https://github.com/pkhuong/martingale-cs) can help
 compare more generic continuous point statistics like averages, or
 quantiles, but will need a lot more data points.
+
+Can the constants be tighter?
+-----------------------------
+
+This test is simply based on a convergent series of false positive
+rates, and point-wise comparisons with the Kolmogorov-Smirnov
+statistic.  There has been recent (1990-201x) avdancements to really
+tighten the constants on the KS statistic; can they help give us
+better thresholds?
+
+In the two-sample case, not really.  Darling and Robbins's proposal
+hinges on
+
+    P[D+(n) >= r/n] <= exp[-r^2 / (n + 1)]
+
+In [Finite sampling inequalities: an application to two-sample Kolmogorov-Smirnov statistics](https://arxiv.org/pdf/1502.00342.pdf),
+Greene and Wellner claim
+
+    P[sqrt(n/2) D+(n) >= t] <= exp[-2 t^2 (2n - 1) / 2n]
+                             = exp[-t^2 (2n - 1) / n].
+
+If we let `t = r / sqrt(2n)`, we can reformulate the above as
+
+    P[D+(n) >= r/n] = exp[(-r^2 / 2n) (2n - 1) / n]
+                    = exp[(-r^2 / n) (2n - 1) / 2n]
+                    = exp[(-r^2 / n) (1 - 1 / 2n)]
+
+Which, while technically better, isn't a big difference (the
+multiplicative effect is on the order of `1 + 1 / 2n`)
+
+In the two-sample two-sided case, we could use Fei and Dudley's
+[Dvoretzky–Kiefer–Wolfowitz inequalities for the two-sample case](https://arxiv.org/pdf/1107.5356.pdf).
+
+Darling and Robbins simply apply a Bonferroni correction:
+
+    P[D(n) >= r/n] <= 2 exp[-r^2 / (n + 1)]
+
+Fei and Dudley offer, for `n >= 458`,
+
+    P[sqrt(n/2) D(n) >= M] <= 2 exp(-2 M^2)
+
+We can let `M = r / sqrt(2n)`, and find
+
+    P[D(n) >= r/n] <= 2 exp[-r^2 / n]
+
+Again, slightly better than `exp[r^2 / (n + 1)]`, but only for `n >=
+458`,  when the difference is negligible.
+
+This `1/n` versus `1/(n + 1)` translates to a `1/n` difference in the
+threshold.  Given the scale factor of `sqrt(n)`, this is a difference
+of `sqrt(1/n)` data points.  In practice, I doubt this additional
+tightness can save more than one iteration of data generation.
+
+The one-sample case is more interesting, mostly because Darling and
+Robbins used a loose bound.
+
+Massart found [The Tight Constant in the Dvoretzky-Kiefer-Wolfowitz Inequality](https://projecteuclid.org/euclid.aop/1176990746),
+in 1990.
+
+In the one-sample one-sided case, we have
+
+    P[D+(n) > \lambda / sqrt(n)] <= exp[-2 \lambda^2],
+
+as long as the right-hand side is at most `1/2`.  We're not that
+interested in high false positive rates, so we can satisfy that
+constraint by clamping the allowed false positive rate below `0.5`.
+
+If we let `\lambda = r / sqrt(n)`, we find
+
+    P[D+(n) >= r / n] <= exp[-2 r^2 / n]
+
+which is *a lot* better than the bound used for the two-sample
+confidence sequence, never mind the one-sample adjustment.
+
+We can recover a more familiar functional form for the error term on
+the right-hand side by testing
+
+    P[D+(n) >= sqrt(1/2) r / n] <= exp[-2/2 r^2 / n]
+                                 = exp[-r^2 / n]
+                                 < exp[-r^2 / (n + 1)]
+
+Again, the two-sided case is a straight Bonferroni correction both for
+Darling and Robbins's confidence sequence and in Massart's tight
+constant.
+
+While tighter than the two-sample case, this `sqrt(1/2)` factor does
+not suffice to beat the direct two-sample bounds: we'd have to sum the
+distance between each empirical CDF and the underlying distribution
+each, so the `sqrt(1/2)` win would end up as a `sqrt(2)` loss in the
+threshold's width.
